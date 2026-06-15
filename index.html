@@ -491,21 +491,23 @@ els.forEach(function(e){io.observe(e)});})();
   var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   var nodes=[{x:.07,y:.42,l:'Van Nuys'},{x:.18,y:.25,l:'Studio City'},{x:.14,y:.60,l:'Sherman Oaks'},{x:.30,y:.44,l:'Toluca Lake'},{x:.27,y:.71,l:'North Hollywood'},{x:.44,y:.38,l:'Burbank',hub:true},{x:.55,y:.23,l:'Hollywood'},{x:.58,y:.55,l:'Glendale',major:true},{x:.46,y:.73,l:'West Hollywood'},{x:.69,y:.66,l:'Beverly Hills'},{x:.82,y:.42,l:'Pasadena',major:true}];
   var HUB=5;
-  nodes.forEach(function(n){var sp=document.createElement('span');sp.textContent=n.l;sp.className=n.hub?'hub':(n.major?'major':'');sp.style.left=(n.x*100)+'%';sp.style.top=(n.y*100)+'%';lc.appendChild(sp);});
+  nodes.forEach(function(n){var el=document.createElement('span');el.textContent=n.l;el.className=n.hub?'hub':(n.major?'major':'');el.style.left=(n.x*100)+'%';el.style.top=(n.y*100)+'%';lc.appendChild(el);});
   var W,H,dpr,P,edges,cars=[],pings=[],last=0,startT=performance.now();
-  function rad(n){return n.hub?5:(n.major?3.6:2.6);}
-  function size(){dpr=Math.min(window.devicePixelRatio||1,2);var r=c.getBoundingClientRect();W=r.width;H=r.height;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);P=nodes.map(function(n){return{x:n.x*W,y:n.y*H};});edges=[];var mD=W*0.23;for(var i=0;i<P.length;i++)for(var j=i+1;j<P.length;j++){var dx=P[i].x-P[j].x,dy=P[i].y-P[j].y;if(Math.sqrt(dx*dx+dy*dy)<mD)edges.push([i,j]);}}
+  function rad(n){return n.hub?6.2:(n.major?4.4:3.4);}
+  function size(){dpr=Math.min(window.devicePixelRatio||1,2);var r=c.getBoundingClientRect();W=r.width;H=r.height;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);P=nodes.map(function(n){return{x:n.x*W,y:n.y*H};});edges=[];var mD=W*0.24;for(var i=0;i<P.length;i++)for(var j=i+1;j<P.length;j++){var dx=P[i].x-P[j].x,dy=P[i].y-P[j].y;if(Math.sqrt(dx*dx+dy*dy)<mD)edges.push([i,j]);}}
   function ez(t){return t*t*(3-2*t);}
   function draw(ts){var t=(ts-startT)/1000;x.clearRect(0,0,W,H);
-    for(var i=0;i<edges.length;i++){var a=P[edges[i][0]],b=P[edges[i][1]];x.strokeStyle='rgba(120,150,235,.12)';x.lineWidth=1;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();}
-    if(!reduce){if(ts-last>820&&cars.length<4){last=ts;var d;do{d=Math.floor(Math.random()*nodes.length);}while(d===HUB);cars.push({d:d,leg:0,t:0,sp:.011+Math.random()*.006,trail:[]});}
+    for(var i=0;i<edges.length;i++){var a=P[edges[i][0]],b=P[edges[i][1]];x.strokeStyle='rgba(142,168,242,.26)';x.lineWidth=1.5;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();}
+    if(!reduce){
+      if(ts-last>1000&&cars.length<4){last=ts;var d;do{d=Math.floor(Math.random()*nodes.length);}while(d===HUB);cars.push({d:d,leg:0,t:0,sp:.0048+Math.random()*.0022,trail:[]});}
       for(var i=0;i<cars.length;i++){var car=cars[i];car.t+=car.sp;if(car.t>=1){if(car.leg===0){car.leg=1;car.t=0;pings.push({n:car.d,t0:ts});}else{car.done=true;}}}
       cars=cars.filter(function(q){return !q.done;});
-      for(var i=0;i<cars.length;i++){var car=cars[i],hub=P[HUB],dst=P[car.d];x.strokeStyle='rgba(159,184,255,.14)';x.lineWidth=1;x.beginPath();x.moveTo(hub.x,hub.y);x.lineTo(dst.x,dst.y);x.stroke();var e=ez(car.t),fr=car.leg===0?hub:dst,to=car.leg===0?dst:hub,px=fr.x+(to.x-fr.x)*e,py=fr.y+(to.y-fr.y)*e;car.trail.push({x:px,y:py});if(car.trail.length>8)car.trail.shift();for(var k=0;k<car.trail.length;k++){var al=(k/car.trail.length)*.4;x.fillStyle='rgba(200,218,255,'+al+')';x.beginPath();x.arc(car.trail[k].x,car.trail[k].y,1.4,0,6.28);x.fill();}x.fillStyle='rgba(230,240,255,.98)';x.shadowColor='#9fb8ff';x.shadowBlur=9;x.beginPath();x.arc(px,py,2.1,0,6.28);x.fill();x.shadowBlur=0;}
-      pings=pings.filter(function(p){return ts-p.t0<1100;});
-      for(var i=0;i<pings.length;i++){var p=pings[i],pr=(ts-p.t0)/1100,r=4+pr*26,al=.4*(1-pr);x.strokeStyle='rgba(196,212,255,'+al+')';x.lineWidth=1.4;x.beginPath();x.arc(P[p.n].x,P[p.n].y,r,0,6.28);x.stroke();}}
-    for(var i=0;i<P.length;i++){var ph=((reduce?0:t)+i*0.7)%3.6;if(ph<1.5){var rr=rad(nodes[i])+ph*20,al=(nodes[i].hub?.3:.18)*(1-ph/1.5);x.strokeStyle='rgba(159,184,255,'+al+')';x.lineWidth=1;x.beginPath();x.arc(P[i].x,P[i].y,rr,0,6.28);x.stroke();}}
-    for(var i=0;i<P.length;i++){var n=nodes[i];x.fillStyle=n.hub?'#c4d4ff':(n.major?'#a9bfff':'rgba(159,184,255,.85)');x.shadowColor='rgba(120,150,235,.9)';x.shadowBlur=n.hub?15:(n.major?10:6);x.beginPath();x.arc(P[i].x,P[i].y,rad(n),0,6.28);x.fill();x.shadowBlur=0;}
+      for(var i=0;i<cars.length;i++){var car=cars[i],hub=P[HUB],dst=P[car.d];x.strokeStyle='rgba(178,200,255,.34)';x.lineWidth=1.8;x.beginPath();x.moveTo(hub.x,hub.y);x.lineTo(dst.x,dst.y);x.stroke();var e=ez(car.t),fr=car.leg===0?hub:dst,to=car.leg===0?dst:hub,px=fr.x+(to.x-fr.x)*e,py=fr.y+(to.y-fr.y)*e;car.trail.push({x:px,y:py});if(car.trail.length>9)car.trail.shift();for(var k=0;k<car.trail.length;k++){var al=(k/car.trail.length)*.45;x.fillStyle='rgba(205,222,255,'+al+')';x.beginPath();x.arc(car.trail[k].x,car.trail[k].y,1.7,0,6.28);x.fill();}x.fillStyle='rgba(232,242,255,.98)';x.shadowColor='#9fb8ff';x.shadowBlur=10;x.beginPath();x.arc(px,py,2.5,0,6.28);x.fill();x.shadowBlur=0;}
+      pings=pings.filter(function(p){return ts-p.t0<1300;});
+      for(var i=0;i<pings.length;i++){var p=pings[i],pr=(ts-p.t0)/1300,r=5+pr*28,al=.42*(1-pr);x.strokeStyle='rgba(200,216,255,'+al+')';x.lineWidth=1.5;x.beginPath();x.arc(P[p.n].x,P[p.n].y,r,0,6.28);x.stroke();}
+    }
+    for(var i=0;i<P.length;i++){var ph=((reduce?0:t)+i*0.7)%3.8;if(ph<1.5){var rr=rad(nodes[i])+ph*20,al=(nodes[i].hub?.3:.18)*(1-ph/1.5);x.strokeStyle='rgba(159,184,255,'+al+')';x.lineWidth=1.2;x.beginPath();x.arc(P[i].x,P[i].y,rr,0,6.28);x.stroke();}}
+    for(var i=0;i<P.length;i++){var n=nodes[i];x.fillStyle=n.hub?'#c4d4ff':(n.major?'#a9bfff':'rgba(170,193,255,.9)');x.shadowColor='rgba(120,150,235,.9)';x.shadowBlur=n.hub?16:(n.major?11:8);x.beginPath();x.arc(P[i].x,P[i].y,rad(n),0,6.28);x.fill();x.shadowBlur=0;}
     if(!reduce)requestAnimationFrame(draw);}
   size();requestAnimationFrame(draw);
   var to;window.addEventListener('resize',function(){clearTimeout(to);to=setTimeout(function(){size();if(reduce)requestAnimationFrame(draw);},150);});
